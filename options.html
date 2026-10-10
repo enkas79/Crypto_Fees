@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Crypto Fees - Impostazioni</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <main>
+        <h1>Avvisi fee</h1>
+        <p>Ricevi una notifica quando la fee scende al di sotto della soglia.
+           Il controllo avviene ogni minuto; l'avviso si riarma quando la fee risale del 10% sopra soglia.</p>
+        <table>
+            <thead><tr><th>Attivo</th><th>Rete</th><th>Soglia</th><th>Fee considerata</th></tr></thead>
+            <tbody id="rows"></tbody>
+        </table>
+        <p id="status" role="status"></p>
+    </main>
+    <script type="module" src="options.js"></script>
+</body>
+</html>

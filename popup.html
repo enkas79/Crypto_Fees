@@ -6,9 +6,10 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-    <label class="currency">Valuta
-        <select id="currency"></select>
-    </label>
+    <div class="topbar">
+        <label>Valuta <select id="currency"></select></label>
+        <button id="options" type="button" title="Avvisi e impostazioni" aria-label="Impostazioni">⚙</button>
+    </div>
     <section>
         <h2>BTC <small>sat/vB</small></h2>
         <div class="price" id="btc-price" aria-live="polite"></div>
@@ -16,9 +17,10 @@
     </section>
     <hr>
     <section>
-        <h2>ETH <small>Gwei</small></h2>
+        <h2><select id="chain" aria-label="Rete EVM"></select> <small>Gwei</small></h2>
         <div class="price" id="eth-price" aria-live="polite"></div>
         <dl id="eth-fees" aria-live="polite"></dl>
+        <p class="note" id="l2-note" hidden>Costo stimato: solo gas L2, esclusa la fee dati L1.</p>
     </section>
     <hr>
     <section>
