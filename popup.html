@@ -6,14 +6,24 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
+    <label class="currency">Valuta
+        <select id="currency"></select>
+    </label>
     <section>
         <h2>BTC <small>sat/vB</small></h2>
+        <div class="price" id="btc-price" aria-live="polite"></div>
         <dl id="btc-fees" aria-live="polite"></dl>
     </section>
     <hr>
     <section>
         <h2>ETH <small>Gwei</small></h2>
+        <div class="price" id="eth-price" aria-live="polite"></div>
         <dl id="eth-fees" aria-live="polite"></dl>
+    </section>
+    <hr>
+    <section>
+        <h2>Oro <small>/oz</small></h2>
+        <div class="price" id="gold-price" aria-live="polite"></div>
     </section>
     <footer>
         <span id="updated"></span>
