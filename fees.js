@@ -72,11 +72,15 @@ export async function getEthFees() {
 
 export async function getPrices() {
     const data = await fetchJson(
-        `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=${CURRENCY}`);
+        `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=${CURRENCY}&include_24hr_change=true`);
     const btc = Number(data.bitcoin?.[CURRENCY]);
     const eth = Number(data.ethereum?.[CURRENCY]);
     if (!Number.isFinite(btc) || !Number.isFinite(eth)) throw new Error('Prezzi non validi');
-    return { btc, eth };
+    const chg = id => {
+        const v = Number(data[id]?.[`${CURRENCY}_24h_change`]);
+        return Number.isFinite(v) ? v : null;
+    };
+    return { btc, eth, btcChange: chg('bitcoin'), ethChange: chg('ethereum') };
 }
 
 // Costo in valuta di una transazione tipica

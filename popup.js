@@ -20,6 +20,18 @@ function render(el, fees, thresholds, decimals, price, costFn) {
     }
 }
 
+function renderPrice(el, price, change) {
+    el.replaceChildren();
+    if (!price) return;
+    el.append(money.format(price));
+    if (change !== null && change !== undefined) {
+        const span = document.createElement('span');
+        span.className = change >= 0 ? 'up' : 'down';
+        span.textContent = `${change >= 0 ? '▲' : '▼'} ${Math.abs(change).toFixed(1)}% (24h)`;
+        el.append(' ', span);
+    }
+}
+
 function renderMessage(el, text, isError = false) {
     el.replaceChildren();
     const p = document.createElement('div');
@@ -35,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const refreshBtn = document.getElementById('refresh');
 
     function paint(c) {
+        renderPrice(document.getElementById('btc-price'), c.prices?.btc, c.prices?.btcChange);
+        renderPrice(document.getElementById('eth-price'), c.prices?.eth, c.prices?.ethChange);
         if (c.btc) render(btcEl, c.btc, BTC_THRESHOLDS, 0, c.prices?.btc, btcCost);
         if (c.eth) render(ethEl, c.eth, ETH_THRESHOLDS, 2, c.prices?.eth, ethCost);
         if (c.ts) updatedEl.textContent = `Agg. ${new Date(c.ts).toLocaleTimeString()}`;
