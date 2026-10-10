@@ -117,7 +117,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         await setChain(chain);
         load(false);
     });
-    $('options').addEventListener('click', () => chrome.runtime.openOptionsPage());
+    $('options').addEventListener('click', async () => {
+        try {
+            await chrome.runtime.openOptionsPage(); // riusa la scheda se già aperta
+        } catch {
+            await chrome.tabs.create({ url: chrome.runtime.getURL('options.html') });
+        }
+        window.close();
+    });
     refreshBtn.addEventListener('click', () => load(true));
     load(false);
 });
