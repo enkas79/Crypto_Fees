@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Crypto Fees</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <section>
+        <h2>BTC <small>sat/vB</small></h2>
+        <dl id="btc-fees" aria-live="polite"></dl>
+    </section>
+    <hr>
+    <section>
+        <h2>ETH <small>Gwei</small></h2>
+        <dl id="eth-fees" aria-live="polite"></dl>
+    </section>
+    <footer>
+        <span id="updated"></span>
+        <button id="refresh" type="button">Aggiorna</button>
+    </footer>
+    <script src="popup.js"></script>
+</body>
+</html>
