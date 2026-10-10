@@ -7,8 +7,8 @@
 </head>
 <body>
     <div class="topbar">
-        <label>Valuta <select id="currency"></select></label>
-        <button id="options" type="button" title="Avvisi e impostazioni" aria-label="Impostazioni">⚙</button>
+        <label><span data-i18n="currency"></span> <select id="currency"></select></label>
+        <button id="options" type="button" data-i18n-title="settings" data-i18n-aria="settingsAria">⚙</button>
     </div>
     <section>
         <h2>BTC <small>sat/vB</small></h2>
@@ -17,19 +17,19 @@
     </section>
     <hr>
     <section>
-        <h2><select id="chain" aria-label="Rete EVM"></select> <small>Gwei</small></h2>
+        <h2><select id="chain" data-i18n-aria="evmNetwork"></select> <small>Gwei</small></h2>
         <div class="price" id="eth-price" aria-live="polite"></div>
         <dl id="eth-fees" aria-live="polite"></dl>
-        <p class="note" id="l2-note" hidden>Costo stimato: solo gas L2, esclusa la fee dati L1.</p>
+        <p class="note" id="l2-note" data-i18n="l2note" hidden></p>
     </section>
     <hr>
     <section>
-        <h2>Oro <small>/oz</small></h2>
+        <h2><span data-i18n="gold"></span> <small>/oz</small></h2>
         <div class="price" id="gold-price" aria-live="polite"></div>
     </section>
     <footer>
         <span id="updated"></span>
-        <button id="refresh" type="button">Aggiorna</button>
+        <button id="refresh" type="button" data-i18n="refresh"></button>
     </footer>
     <script type="module" src="popup.js"></script>
 </body>

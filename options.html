@@ -2,16 +2,16 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Crypto Fees - Impostazioni</title>
+    <title>Crypto Fees</title>
     <link rel="stylesheet" href="options.css">
 </head>
 <body>
     <main>
-        <h1>Avvisi fee</h1>
-        <p>Ricevi una notifica quando la fee scende al di sotto della soglia.
-           Il controllo avviene ogni minuto; l'avviso si riarma quando la fee risale del 10% sopra soglia.</p>
+        <h1 data-i18n="options.heading"></h1>
+        <p data-i18n="options.intro"></p>
+        <p><label><span data-i18n="language"></span> <select id="lang"></select></label></p>
         <table>
-            <thead><tr><th>Attivo</th><th>Rete</th><th>Soglia</th><th>Fee considerata</th></tr></thead>
+            <thead><tr><th data-i18n="enabled"></th><th data-i18n="network"></th><th data-i18n="threshold"></th><th data-i18n="feeUsed"></th></tr></thead>
             <tbody id="rows"></tbody>
         </table>
         <p id="status" role="status"></p>

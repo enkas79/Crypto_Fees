@@ -2,6 +2,7 @@ import {
     CHAINS, BTC_THRESHOLDS, refreshAll, readCache, writeCache,
     getCurrency, getChain, getAlerts, getSetting, setSetting
 } from './fees.js';
+import { loadLang, t } from './i18n.js';
 
 const ALARM = 'refresh-fees';
 const HYSTERESIS = 1.1; // l'avviso si riarma solo quando la fee risale del 10% sopra soglia
@@ -14,6 +15,7 @@ const fmt = v => (v < 10 ? Number(v.toPrecision(2)) : Math.round(v)).toString();
 
 async function checkAlerts(cache, alerts) {
     const state = await getSetting('alertState', {});
+    await loadLang();
     for (const [key, { enabled, threshold }] of Object.entries(alerts)) {
         const value = currentValue(cache, key);
         if (!enabled || value === undefined) {
@@ -27,8 +29,8 @@ async function checkAlerts(cache, alerts) {
             chrome.notifications.create(`fee-${key}`, {
                 type: 'basic',
                 iconUrl: 'images/icon128.png',
-                title: `Fee ${name} basse`,
-                message: `${fmt(value)} ${unit} (soglia ${fmt(threshold)} ${unit})`
+                title: t('notifTitle', { name }),
+                message: t('notifMsg', { value: fmt(value), unit, threshold: fmt(threshold) })
             });
         } else if (value > threshold * HYSTERESIS) {
             state[key] = false;

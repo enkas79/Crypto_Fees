@@ -3,15 +3,17 @@ import {
     readCache, writeCache, refreshAll, btcCost, evmCost,
     getCurrency, setCurrency, getChain, setChain
 } from './fees.js';
+import { loadLang, applyI18n, t, currentLang } from './i18n.js';
 
 let currency = 'usd';
 let chain = 'ethereum';
 
 const makeFormatters = () => {
     const base = { style: 'currency', currency: currency.toUpperCase() };
-    const money = new Intl.NumberFormat(undefined, base);
+    const locale = currentLang();
+    const money = new Intl.NumberFormat(locale, base);
     // Importi minuscoli (fee EVM): più decimali per non mostrare "0,00"
-    const small = new Intl.NumberFormat(undefined, { ...base, minimumFractionDigits: 4, maximumFractionDigits: 4 });
+    const small = new Intl.NumberFormat(locale, { ...base, minimumFractionDigits: 4, maximumFractionDigits: 4 });
     return { money, formatCost: v => (v < 0.01 ? small : money).format(v) };
 };
 let { money, formatCost } = makeFormatters();
@@ -19,11 +21,11 @@ let { money, formatCost } = makeFormatters();
 const formatBtc = v => (v < 10 ? v.toFixed(1) : v.toFixed(0));
 const formatGwei = v => (v < 0.1 ? v.toFixed(4) : v < 10 ? v.toFixed(2) : v.toFixed(1));
 
-function render(el, fees, thresholds, format, price, costFn) {
+function render(el, fees, thresholds, format, price, costFn, scope) {
     el.replaceChildren();
-    for (const { label, value } of fees) {
+    for (const { key, label, value } of fees) {
         const dt = document.createElement('dt');
-        dt.textContent = label;
+        dt.textContent = key ? t(`${scope}.${key}`) : label; // `label`: cache di versioni precedenti
         const dd = document.createElement('dd');
         dd.textContent = format(value);
         dd.className = value < thresholds[0] ? 'low' : value < thresholds[1] ? 'mid' : 'high';
@@ -63,7 +65,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const currencySel = $('currency');
     const chainSel = $('chain');
 
-    [currency, chain] = await Promise.all([getCurrency(), getChain()]);
+    [currency, chain] = await Promise.all([getCurrency(), getChain(), loadLang()]);
+    applyI18n();
     ({ money, formatCost } = makeFormatters());
     for (const c of CURRENCIES) currencySel.add(new Option(c.toUpperCase(), c));
     for (const [id, { name }] of Object.entries(CHAINS)) chainSel.add(new Option(name, id));
@@ -78,10 +81,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderPrice($('eth-price'), native);
         renderPrice($('gold-price'), p?.gold);
         $('l2-note').hidden = !cfg.l2;
-        if (c.btc) render(btcEl, c.btc, BTC_THRESHOLDS, formatBtc, p?.btc.price, btcCost);
-        if (c.evm?.[chain]) render(evmEl, c.evm[chain], cfg.thresholds, formatGwei, native?.price, evmCost);
-        else renderMessage(evmEl, 'Caricamento…');
-        if (c.ts) updatedEl.textContent = `Agg. ${new Date(c.ts).toLocaleTimeString()}`;
+        if (c.btc) render(btcEl, c.btc, BTC_THRESHOLDS, formatBtc, p?.btc.price, btcCost, 'btc');
+        if (c.evm?.[chain]) render(evmEl, c.evm[chain], cfg.thresholds, formatGwei, native?.price, evmCost, 'evm');
+        else renderMessage(evmEl, t('loading'));
+        if (c.ts) updatedEl.textContent = t('updated', { time: new Date(c.ts).toLocaleTimeString(currentLang()) });
     }
 
     async function load(force) {
@@ -91,7 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             cached.prices?.currency === currency && cached.evm?.[chain];
         if (!force && fresh) return;
 
-        if (!cached.btc) renderMessage(btcEl, 'Caricamento…');
+        if (!cached.btc) renderMessage(btcEl, t('loading'));
         refreshBtn.disabled = true;
 
         const { next, ok, failed } = await refreshAll(cached, currency, [chain]);
@@ -99,10 +102,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             await writeCache(next);
             paint(next);
         } else {
-            updatedEl.textContent = 'Errore di rete';
+            updatedEl.textContent = t('netError');
         }
-        if (failed.btc && !next.btc) renderMessage(btcEl, 'Servizio non raggiungibile', true);
-        if (failed.evm[chain] && !next.evm?.[chain]) renderMessage(evmEl, 'Servizio non raggiungibile', true);
+        if (failed.btc && !next.btc) renderMessage(btcEl, t('unreachable'), true);
+        if (failed.evm[chain] && !next.evm?.[chain]) renderMessage(evmEl, t('unreachable'), true);
         refreshBtn.disabled = false;
     }
 

@@ -42,10 +42,10 @@ export const DEFAULT_ALERTS = {
 };
 
 const BTC_LEVELS = [
-    ['fastestFee', 'Veloce (~10 min)'],
-    ['halfHourFee', 'Medio (~30 min)'],
-    ['hourFee', 'Lento (~1 h)'],
-    ['economyFee', 'Economy']
+    ['fastestFee', 'fast'],
+    ['halfHourFee', 'medium'],
+    ['hourFee', 'slow'],
+    ['economyFee', 'economy']
 ];
 
 async function fetchJson(url, options = {}) {
@@ -74,10 +74,10 @@ const toGwei = hex => Number(BigInt(hex ?? '0x0')) / 1e9;
 
 export async function getBtcFees() {
     const data = await fetchJson('https://mempool.space/api/v1/fees/recommended');
-    return BTC_LEVELS.map(([key, label]) => {
+    return BTC_LEVELS.map(([key, level]) => {
         const value = Number(data[key]);
         if (!Number.isFinite(value)) throw new Error('Dati BTC non validi');
-        return { label, value };
+        return { key: level, value };
     });
 }
 
@@ -92,9 +92,9 @@ export async function getEvmFees(chainId) {
             const tips = [0, 1, 2].map(i =>
                 rewards.length ? rewards.reduce((sum, r) => sum + toGwei(r?.[i]), 0) / rewards.length : 0);
             const fees = [
-                { label: 'Lento', value: base + tips[0] },
-                { label: 'Standard', value: base + tips[1] },
-                { label: 'Veloce', value: base + tips[2] }
+                { key: 'slow', value: base + tips[0] },
+                { key: 'standard', value: base + tips[1] },
+                { key: 'fast', value: base + tips[2] }
             ];
             if (fees.some(f => !Number.isFinite(f.value))) throw new Error('Dati EVM non validi');
             return fees;

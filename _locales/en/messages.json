@@ -1,0 +1,8 @@
+{
+  "extName": {
+    "message": "Crypto Fees"
+  },
+  "extDescription": {
+    "message": "Real-time network fees for Bitcoin (sat/vB) and Ethereum (Gwei)."
+  }
+}

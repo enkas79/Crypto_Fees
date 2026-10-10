@@ -13,6 +13,9 @@ Estensione Chrome (Manifest V3) che mostra le fee di rete e i prezzi, con avvisi
 - **Avvisi sotto soglia** (⚙ nel popup): notifica quando la fee scende sotto il valore scelto, per BTC (fee veloce)
   e per ogni rete EVM (fee standard). Si riarma quando la fee risale del 10% sopra soglia.
 
+- **Lingua** selezionabile dalla pagina impostazioni (⚙): italiano, inglese, tedesco, francese, spagnolo.
+  Senza scelta si usa la lingua del browser (ripiego: inglese). Le stringhe sono in `i18n.js`.
+
 ## Installazione
 `chrome://extensions` → Modalità sviluppatore → "Carica estensione non pacchettizzata" → cartella del repo.
 
