@@ -3,7 +3,14 @@ import {
     readCache, writeCache, refreshAll, btcCost, ethCost
 } from './fees.js';
 
-const money = new Intl.NumberFormat(undefined, { style: 'currency', currency: CURRENCY.toUpperCase() });
+const currency = CURRENCY.toUpperCase();
+const money = new Intl.NumberFormat(undefined, { style: 'currency', currency });
+// Importi minuscoli (fee ETH): più decimali per non mostrare "0,00 €"
+const smallMoney = new Intl.NumberFormat(undefined, {
+    style: 'currency', currency, minimumFractionDigits: 4, maximumFractionDigits: 4
+});
+const formatCost = v => (v < 0.01 ? smallMoney : money).format(v);
+const formatFee = (v, decimals) => (decimals === 0 && v < 10 ? v.toFixed(1) : v.toFixed(decimals));
 
 function render(el, fees, thresholds, decimals, price, costFn) {
     el.replaceChildren();
@@ -11,11 +18,11 @@ function render(el, fees, thresholds, decimals, price, costFn) {
         const dt = document.createElement('dt');
         dt.textContent = label;
         const dd = document.createElement('dd');
-        dd.textContent = value.toFixed(decimals);
+        dd.textContent = formatFee(value, decimals);
         dd.className = value < thresholds[0] ? 'low' : value < thresholds[1] ? 'mid' : 'high';
         const cost = document.createElement('dd');
         cost.className = 'cost';
-        cost.textContent = price ? `≈ ${money.format(costFn(value, price))}` : '';
+        cost.textContent = price ? `≈ ${formatCost(costFn(value, price))}` : '';
         el.append(dt, dd, cost);
     }
 }
