@@ -1,9 +1,9 @@
-import { refreshAll, readCache, writeCache, BTC_THRESHOLDS } from './fees.js';
+import { refreshAll, readCache, writeCache, getCurrency, BTC_THRESHOLDS } from './fees.js';
 
 const ALARM = 'refresh-fees';
 
 async function update() {
-    const { next, ok } = await refreshAll((await readCache()) || {});
+    const { next, ok } = await refreshAll((await readCache()) || {}, await getCurrency());
     if (!ok) return;
     await writeCache(next);
     const fast = next.btc?.[0]?.value;

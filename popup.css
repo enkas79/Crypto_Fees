@@ -14,3 +14,4 @@ footer { display: flex; justify-content: space-between; align-items: center; mar
 .price { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
 .price span { font-size: 11px; font-weight: normal; }
 .up { color: #2e9e4f; } .down { color: #d33; }
+.currency { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }

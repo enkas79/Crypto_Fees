@@ -1,6 +1,7 @@
 export const TIMEOUT_MS = 5000;
 export const CACHE_TTL_MS = 30000;
-export const CURRENCY = 'eur';
+export const CURRENCIES = ['usd', 'eur', 'gbp', 'chf', 'jpy'];
+export const DEFAULT_CURRENCY = 'usd';
 export const BTC_TX_VBYTES = 141; // tx P2WPKH 1 input / 2 output
 export const ETH_TRANSFER_GAS = 21000;
 export const BTC_THRESHOLDS = [5, 20];
@@ -70,17 +71,32 @@ export async function getEthFees() {
     throw lastError;
 }
 
-export async function getPrices() {
+// Oro: PAXG è un token ancorato a 1 oncia troy d'oro fisico (proxy dello spot XAU)
+export async function getPrices(currency) {
     const data = await fetchJson(
-        `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=${CURRENCY}&include_24hr_change=true`);
-    const btc = Number(data.bitcoin?.[CURRENCY]);
-    const eth = Number(data.ethereum?.[CURRENCY]);
-    if (!Number.isFinite(btc) || !Number.isFinite(eth)) throw new Error('Prezzi non validi');
-    const chg = id => {
-        const v = Number(data[id]?.[`${CURRENCY}_24h_change`]);
-        return Number.isFinite(v) ? v : null;
+        `https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,pax-gold&vs_currencies=${currency}&include_24hr_change=true`);
+    const read = id => {
+        const price = Number(data[id]?.[currency]);
+        if (!Number.isFinite(price)) throw new Error('Prezzi non validi');
+        const change = Number(data[id]?.[`${currency}_24h_change`]);
+        return { price, change: Number.isFinite(change) ? change : null };
     };
-    return { btc, eth, btcChange: chg('bitcoin'), ethChange: chg('ethereum') };
+    return { currency, btc: read('bitcoin'), eth: read('ethereum'), gold: read('pax-gold') };
+}
+
+export async function getCurrency() {
+    try {
+        const { currency } = await chrome.storage.local.get('currency');
+        return CURRENCIES.includes(currency) ? currency : DEFAULT_CURRENCY;
+    } catch {
+        return DEFAULT_CURRENCY;
+    }
+}
+
+export async function setCurrency(currency) {
+    try {
+        await chrome.storage.local.set({ currency });
+    } catch { /* preferenza opzionale */ }
 }
 
 // Costo in valuta di una transazione tipica
@@ -102,9 +118,11 @@ export async function writeCache(cache) {
 }
 
 // Scarica tutto in parallelo; un servizio che fallisce non blocca gli altri.
-export async function refreshAll(previous = {}) {
-    const [btc, eth, prices] = await Promise.allSettled([getBtcFees(), getEthFees(), getPrices()]);
+export async function refreshAll(previous = {}, currency = DEFAULT_CURRENCY) {
+    const [btc, eth, prices] = await Promise.allSettled([getBtcFees(), getEthFees(), getPrices(currency)]);
     const next = { ...previous };
+    // Prezzi in un'altra valuta non sono più validi
+    if (next.prices && next.prices.currency !== currency) delete next.prices;
     if (btc.status === 'fulfilled') next.btc = btc.value;
     if (eth.status === 'fulfilled') next.eth = eth.value;
     if (prices.status === 'fulfilled') next.prices = prices.value;
