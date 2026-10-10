@@ -1,27 +1,31 @@
 import {
-    CACHE_TTL_MS, CURRENCIES, BTC_THRESHOLDS, ETH_THRESHOLDS,
-    readCache, writeCache, refreshAll, btcCost, ethCost, getCurrency, setCurrency
+    CACHE_TTL_MS, CURRENCIES, CHAINS, BTC_THRESHOLDS,
+    readCache, writeCache, refreshAll, btcCost, evmCost,
+    getCurrency, setCurrency, getChain, setChain
 } from './fees.js';
 
 let currency = 'usd';
+let chain = 'ethereum';
+
 const makeFormatters = () => {
     const base = { style: 'currency', currency: currency.toUpperCase() };
     const money = new Intl.NumberFormat(undefined, base);
-    // Importi minuscoli (fee ETH): più decimali per non mostrare "0,00"
+    // Importi minuscoli (fee EVM): più decimali per non mostrare "0,00"
     const small = new Intl.NumberFormat(undefined, { ...base, minimumFractionDigits: 4, maximumFractionDigits: 4 });
     return { money, formatCost: v => (v < 0.01 ? small : money).format(v) };
 };
 let { money, formatCost } = makeFormatters();
 
-const formatFee = (v, decimals) => (decimals === 0 && v < 10 ? v.toFixed(1) : v.toFixed(decimals));
+const formatBtc = v => (v < 10 ? v.toFixed(1) : v.toFixed(0));
+const formatGwei = v => (v < 0.1 ? v.toFixed(4) : v < 10 ? v.toFixed(2) : v.toFixed(1));
 
-function render(el, fees, thresholds, decimals, price, costFn) {
+function render(el, fees, thresholds, format, price, costFn) {
     el.replaceChildren();
     for (const { label, value } of fees) {
         const dt = document.createElement('dt');
         dt.textContent = label;
         const dd = document.createElement('dd');
-        dd.textContent = formatFee(value, decimals);
+        dd.textContent = format(value);
         dd.className = value < thresholds[0] ? 'low' : value < thresholds[1] ? 'mid' : 'high';
         const cost = document.createElement('dd');
         cost.className = 'cost';
@@ -53,37 +57,44 @@ function renderMessage(el, text, isError = false) {
 document.addEventListener('DOMContentLoaded', async () => {
     const $ = id => document.getElementById(id);
     const btcEl = $('btc-fees');
-    const ethEl = $('eth-fees');
+    const evmEl = $('eth-fees');
     const updatedEl = $('updated');
     const refreshBtn = $('refresh');
-    const select = $('currency');
+    const currencySel = $('currency');
+    const chainSel = $('chain');
 
-    currency = await getCurrency();
+    [currency, chain] = await Promise.all([getCurrency(), getChain()]);
     ({ money, formatCost } = makeFormatters());
-    for (const c of CURRENCIES) select.add(new Option(c.toUpperCase(), c));
-    select.value = currency;
+    for (const c of CURRENCIES) currencySel.add(new Option(c.toUpperCase(), c));
+    for (const [id, { name }] of Object.entries(CHAINS)) chainSel.add(new Option(name, id));
+    currencySel.value = currency;
+    chainSel.value = chain;
 
     function paint(c) {
         const p = c.prices?.currency === currency ? c.prices : undefined;
+        const cfg = CHAINS[chain];
+        const native = p?.[cfg.native];
         renderPrice($('btc-price'), p?.btc);
-        renderPrice($('eth-price'), p?.eth);
+        renderPrice($('eth-price'), native);
         renderPrice($('gold-price'), p?.gold);
-        if (c.btc) render(btcEl, c.btc, BTC_THRESHOLDS, 0, p?.btc.price, btcCost);
-        if (c.eth) render(ethEl, c.eth, ETH_THRESHOLDS, 2, p?.eth.price, ethCost);
+        $('l2-note').hidden = !cfg.l2;
+        if (c.btc) render(btcEl, c.btc, BTC_THRESHOLDS, formatBtc, p?.btc.price, btcCost);
+        if (c.evm?.[chain]) render(evmEl, c.evm[chain], cfg.thresholds, formatGwei, native?.price, evmCost);
+        else renderMessage(evmEl, 'Caricamento…');
         if (c.ts) updatedEl.textContent = `Agg. ${new Date(c.ts).toLocaleTimeString()}`;
     }
 
     async function load(force) {
         const cached = (await readCache()) || {};
         paint(cached);
-        const fresh = cached.ts && Date.now() - cached.ts < CACHE_TTL_MS && cached.prices?.currency === currency;
+        const fresh = cached.ts && Date.now() - cached.ts < CACHE_TTL_MS &&
+            cached.prices?.currency === currency && cached.evm?.[chain];
         if (!force && fresh) return;
 
         if (!cached.btc) renderMessage(btcEl, 'Caricamento…');
-        if (!cached.eth) renderMessage(ethEl, 'Caricamento…');
         refreshBtn.disabled = true;
 
-        const { next, ok, failed } = await refreshAll(cached, currency);
+        const { next, ok, failed } = await refreshAll(cached, currency, [chain]);
         if (ok) {
             await writeCache(next);
             paint(next);
@@ -91,16 +102,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             updatedEl.textContent = 'Errore di rete';
         }
         if (failed.btc && !next.btc) renderMessage(btcEl, 'Servizio non raggiungibile', true);
-        if (failed.eth && !next.eth) renderMessage(ethEl, 'Servizio non raggiungibile', true);
+        if (failed.evm[chain] && !next.evm?.[chain]) renderMessage(evmEl, 'Servizio non raggiungibile', true);
         refreshBtn.disabled = false;
     }
 
-    select.addEventListener('change', async () => {
-        currency = select.value;
+    currencySel.addEventListener('change', async () => {
+        currency = currencySel.value;
         ({ money, formatCost } = makeFormatters());
         await setCurrency(currency);
         load(true);
     });
+    chainSel.addEventListener('change', async () => {
+        chain = chainSel.value;
+        await setChain(chain);
+        load(false);
+    });
+    $('options').addEventListener('click', () => chrome.runtime.openOptionsPage());
     refreshBtn.addEventListener('click', () => load(true));
     load(false);
 });
