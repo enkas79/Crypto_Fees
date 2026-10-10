@@ -1,14 +1,18 @@
 {
   "manifest_version": 3,
   "name": "Crypto Fees",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Fee di rete in tempo reale per Bitcoin (sat/vB) ed Ethereum (Gwei).",
   "host_permissions": [
     "https://mempool.space/*",
     "https://ethereum-rpc.publicnode.com/*",
-    "https://eth.llamarpc.com/*"
+    "https://eth.llamarpc.com/*",
+    "https://api.coingecko.com/*"
   ],
-  "permissions": ["storage"],
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
   "action": {
     "default_title": "Crypto Fees",
     "default_popup": "popup.html",
@@ -22,5 +26,9 @@
     "16": "images/icon16.png",
     "48": "images/icon48.png",
     "128": "images/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
   }
 }

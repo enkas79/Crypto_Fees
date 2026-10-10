@@ -2,10 +2,11 @@
 body { width: 240px; margin: 0; padding: 12px; font: 13px system-ui, sans-serif; }
 h2 { margin: 0 0 6px; font-size: 16px; }
 h2 small { font-weight: normal; opacity: .6; font-size: 11px; }
-dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; }
+dl { margin: 0; display: grid; grid-template-columns: 1fr auto auto; gap: 2px 8px; }
 dt { opacity: .8; }
 dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .low { color: #2e9e4f; } .mid { color: #c98a00; } .high { color: #d33; }
+.cost { font-weight: normal; opacity: .65; font-size: 11px; min-width: 52px; }
 .msg { grid-column: 1 / -1; opacity: .7; }
 .err { color: #d33; opacity: 1; }
 hr { border: 0; border-top: 1px solid #8884; margin: 10px 0; }
